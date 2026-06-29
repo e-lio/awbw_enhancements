@@ -396,7 +396,7 @@ function initializeQuickActions(options) {
     });
 
     document.addEventListener('keyup', (e) => {
-        let quickMoveKeys = options.options_bindings_quick_move_hotkey || [66]; // Default to 'B' (66)
+        let quickMoveKeys = options.options_bindings_quick_move_hotkey || [71]; // Default to 'G' (71)
         if (quickMoveKeys.includes(e.keyCode)) {
             let duration = Date.now() - quickMoveStartTime;
             if (duration > 150) {
@@ -423,7 +423,7 @@ function initializeQuickActions(options) {
         }
 
         // --- Quick Move ---
-        let quickMoveKeys = options.options_bindings_quick_move_hotkey || [66]; // Default to 'B' (66)
+        let quickMoveKeys = options.options_bindings_quick_move_hotkey || [71]; // Default to 'G' (71)
 
         if (quickMoveKeys.includes(e.keyCode)) {
             quickMoveStartTime = Date.now();
@@ -442,7 +442,7 @@ function initializeQuickActions(options) {
         }
 
         // --- Quick Convert Building ---
-        let convertArmyKeys = options.options_bindings_quick_convert_army_hotkey || [86]; // Default 'V'
+        let convertArmyKeys = options.options_bindings_quick_convert_army_hotkey || [70]; // Default 'F'
         if (convertArmyKeys.includes(e.keyCode)) {
             handleQuickAction(() => convertBuilding(0), 100); // 0 = First option (Army), 100ms delay for menu to open
             return;
@@ -455,21 +455,21 @@ function initializeQuickActions(options) {
         }
 
         // --- Quick Remove Unit ---
-        let removeUnitKeys = options.options_bindings_quick_remove_unit_hotkey || [71]; // Default 'G'
+        let removeUnitKeys = options.options_bindings_quick_remove_unit_hotkey || [82]; // Default 'R'
         if (removeUnitKeys.includes(e.keyCode)) {
             handleQuickAction(() => clickRemoveOption(), 0);
             return;
         }
 
         // --- Quick Capture ---
-        let captureKeys = options.options_bindings_quick_capture_hotkey || [70]; // Default 'F'
+        let captureKeys = options.options_bindings_quick_capture_hotkey || [86]; // Default 'V'
         if (captureKeys.includes(e.keyCode)) {
             handleQuickAction(() => clickCaptureOption(), 0);
             return;
         }
 
         // --- Quick Wait ---
-        let waitKeys = options.options_bindings_quick_wait_hotkey || [83]; // Default 'S'
+        let waitKeys = options.options_bindings_quick_wait_hotkey || [87]; // Default 'W'
         if (waitKeys.includes(e.keyCode)) {
             handleQuickAction(() => clickWaitOption(), 0);
             return;
@@ -532,8 +532,8 @@ function initializeQuickActions(options) {
             }
         }
 
-        // --- End Turn (M) ---
-        let endTurnKeys = options.options_bindings_end_turn_hotkey || [77]; // Default 'M'
+        // --- End Turn (P) ---
+        let endTurnKeys = options.options_bindings_end_turn_hotkey || [80]; // Default 'P'
         if (endTurnKeys.includes(e.keyCode)) {
             let endTurnBtn = document.querySelector(".js-end-turn-btn");
             if (endTurnBtn && endTurnBtn.offsetParent !== null) { // Check if visible
@@ -925,6 +925,9 @@ OptionsReader.instance().onOptionsReady((options) => {
             playersPanel.handleUpdate(mapEntities);
         });
 
+        let movementTracker = new UnitMovementTracker(gamemap, parser, playersPanel);
+        movementTracker.setEnabled(options.options_enable_movement_tracers !== false);
+
         // Intercept any clicks or changes on CO power / COP / SCOP buttons to temporarily ignore charge calculations.
         const ignorePowerCharge = (e) => {
             let target = e.target;
@@ -990,13 +993,47 @@ OptionsReader.instance().onOptionsReady((options) => {
         }
 
         let observer = new MutationObserver((mutations, observer) => {
-            // Ignore cursor-only mutations, they can't affect game state.
+            // Ignore cursor-only mutations and AWBW Enhancements elements/line mutations, they can't affect game state.
             let isInteresting = false;
             for (let mutation of mutations) {
-                if (mutation.target.id != "cursor") {
-                    isInteresting = true;
-                    break;
+                let target = mutation.target;
+                
+                // Ignore cursor changes
+                if (target.id === "cursor") continue;
+
+                // Ignore target changes on tracers SVG or range preview tiles
+                if (target.id === "awbwenhancements-tracers-svg" || 
+                    target.classList?.contains("awbwenhancements-range-tile") ||
+                    target.closest?.("#awbwenhancements-tracers-svg")) {
+                    continue;
                 }
+
+                // If children are added/removed, ignore if they are only tracers/ranges
+                if (mutation.type === "childList") {
+                    let hasRealChanges = false;
+                    for (let node of mutation.addedNodes) {
+                        if (node.id === "awbwenhancements-tracers-svg" || 
+                            node.classList?.contains("awbwenhancements-range-tile")) {
+                            continue;
+                        }
+                        hasRealChanges = true;
+                        break;
+                    }
+                    for (let node of mutation.removedNodes) {
+                        if (node.id === "awbwenhancements-tracers-svg" || 
+                            node.classList?.contains("awbwenhancements-range-tile")) {
+                            continue;
+                        }
+                        hasRealChanges = true;
+                        break;
+                    }
+                    if (!hasRealChanges) {
+                        continue;
+                    }
+                }
+
+                isInteresting = true;
+                break;
             }
 
             if (isInteresting) {
@@ -1075,14 +1112,14 @@ function initializeHotkeyReference(options) {
         {
             title: "General Actions",
             items: [
-                { label: "Quick Move", option: "options_bindings_quick_move_hotkey", default: "B" },
-                { label: "Quick Capture", option: "options_bindings_quick_capture_hotkey", default: "F" },
-                { label: "Quick Wait", option: "options_bindings_quick_wait_hotkey", default: "S" },
+                { label: "Quick Move", option: "options_bindings_quick_move_hotkey", default: "G" },
+                { label: "Quick Capture", option: "options_bindings_quick_capture_hotkey", default: "V" },
+                { label: "Quick Wait", option: "options_bindings_quick_wait_hotkey", default: "W" },
                 { label: "Quick Unwait", option: "options_bindings_quick_unwait_hotkey", default: "X" },
-                { label: "Quick Remove", option: "options_bindings_quick_remove_unit_hotkey", default: "G" },
-                { label: "Convert Property (Army)", option: "options_bindings_quick_convert_army_hotkey", default: "V" },
+                { label: "Quick Remove", option: "options_bindings_quick_remove_unit_hotkey", default: "R" },
+                { label: "Convert Property (Army)", option: "options_bindings_quick_convert_army_hotkey", default: "F" },
                 { label: "Convert Property (Neutral)", option: "options_bindings_quick_convert_neutral_hotkey", default: "N" },
-                { label: "End Turn", option: "options_bindings_end_turn_hotkey", default: "M" },
+                { label: "End Turn", option: "options_bindings_end_turn_hotkey", default: "P" },
                 { label: "Toggle Calculator", option: null, default: "C" },
                 { label: "Set HP", option: null, default: "0-9" },
             ]
