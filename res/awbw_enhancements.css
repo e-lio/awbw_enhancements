@@ -578,3 +578,15 @@ td.awbwenhancements-two-hit-ko {
   stroke-linecap: round;
   opacity: 0.9;
 }
+
+/* Two Turns Movement Preview */
+.movement-tile-2turn {
+  background-color: rgba(67, 217, 228, 0.15) !important;
+  border-color: rgba(22, 98, 184, 0.4) !important;
+  border-style: solid;
+  box-sizing: border-box;
+  height: 17px;
+  width: 17px;
+  position: absolute;
+  z-index: 124;
+}
