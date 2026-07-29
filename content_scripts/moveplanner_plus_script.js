@@ -617,6 +617,46 @@ function handleQuickAction(actionCallback, delay = 0) {
 
 
 
+function getOrCreateRightIcon(targetUnit, hp) {
+    let imgs = targetUnit.getElementsByTagName("img");
+    let rightIconImg = null;
+    for (let img of imgs) {
+        if (img.id && img.id.includes('rightIcon')) {
+            rightIconImg = img;
+            break;
+        }
+    }
+    
+    // If the unit has no rightIcon, and we are setting it to less than 10 HP, create it
+    if (!rightIconImg && hp < 10 && imgs.length > 0) {
+        let spriteImg = imgs[0];
+        let baseDir = spriteImg.src.substring(0, spriteImg.src.lastIndexOf("/"));
+        let unitId = targetUnit.id.split("_")[1];
+        if (unitId) {
+            rightIconImg = document.createElement("img");
+            rightIconImg.id = `unit_${unitId}_rightIcon`;
+            
+            // Try to find any existing rightIcon on the page to copy classes and styles
+            let existingIcon = document.querySelector("img[id$='_rightIcon']");
+            if (existingIcon) {
+                rightIconImg.className = existingIcon.className;
+                rightIconImg.style.cssText = existingIcon.style.cssText;
+            } else {
+                // Fallback standard styling if no other rightIcon exists yet
+                rightIconImg.className = "rightIcon";
+                rightIconImg.style.position = "absolute";
+                rightIconImg.style.bottom = "0px";
+                rightIconImg.style.right = "0px";
+            }
+            
+            rightIconImg.src = `${baseDir}/${hp}.gif`;
+            targetUnit.appendChild(rightIconImg);
+        }
+    }
+    
+    return rightIconImg;
+}
+
 function setUnitHp(hp) {
     let hpInput = document.getElementById("hp");
     if (hpInput) {
@@ -629,9 +669,77 @@ function setUnitHp(hp) {
         let setHpItem = document.getElementById("set-hp");
         if (setHpItem) {
             setHpItem.click();
+            
+            // Workaround for new website issue: manually update the unit's HP image in the DOM.
+            // This ensures GameStateParser sees the change and calculates charge properly.
+            if (menuOwner) {
+                let rightIconImg = getOrCreateRightIcon(menuOwner, hp);
+                if (rightIconImg) {
+                    if (hp == 10) {
+                        rightIconImg.src = rightIconImg.src.replace(/\/[^/]+\.gif$/, '/10.gif');
+                        rightIconImg.style.display = 'none';
+                    } else {
+                        rightIconImg.src = rightIconImg.src.replace(/\/[^/]+\.gif$/, '/' + hp + '.gif');
+                        rightIconImg.style.display = '';
+                    }
+                }
+                
+                // Force map update after a short delay to ensure charge calculation triggers
+                setTimeout(() => {
+                    if (typeof parser !== 'undefined' && parser.handleMapUpdate) {
+                        parser.handleMapUpdate();
+                    }
+                }, 50);
+            }
         }
     }
 }
+
+// Global click listener to catch manual clicks on the #set-hp menu item (when quick hotkeys aren't used)
+document.addEventListener('click', (e) => {
+    let setHpItem = e.target.closest('#set-hp');
+    if (setHpItem) {
+        let hpInput = document.getElementById("hp");
+        if (hpInput) {
+            let hp = parseInt(hpInput.value);
+            let cursor = document.getElementById("cursor");
+            let targetUnit = menuOwner;
+            
+            // If menuOwner isn't set (e.g., manual click), find the unit under the cursor
+            if (!targetUnit && cursor) {
+                let cursorLeft = cursor.style.left;
+                let cursorTop = cursor.style.top;
+                let units = document.querySelectorAll("span[id^='unit_']");
+                for (let unit of units) {
+                    if (unit.style.left === cursorLeft && unit.style.top === cursorTop) {
+                        targetUnit = unit;
+                        break;
+                    }
+                }
+            }
+            
+            if (targetUnit) {
+                let rightIconImg = getOrCreateRightIcon(targetUnit, hp);
+                if (rightIconImg) {
+                    if (hp == 10) {
+                        rightIconImg.src = rightIconImg.src.replace(/\/[^/]+\.gif$/, '/10.gif');
+                        rightIconImg.style.display = 'none';
+                    } else {
+                        rightIconImg.src = rightIconImg.src.replace(/\/[^/]+\.gif$/, '/' + hp + '.gif');
+                        rightIconImg.style.display = '';
+                    }
+                }
+                
+                // Force map update after a short delay to ensure charge calculation triggers
+                setTimeout(() => {
+                    if (typeof parser !== 'undefined' && parser.handleMapUpdate) {
+                        parser.handleMapUpdate();
+                    }
+                }, 50);
+            }
+        }
+    }
+});
 
 function convertBuilding(optionIndex) {
     // The building options are in a list inside #building-options
@@ -816,6 +924,38 @@ OptionsReader.instance().onOptionsReady((options) => {
         parser.addListener((mapEntities) => {
             playersPanel.handleUpdate(mapEntities);
         });
+
+        // Intercept any clicks or changes on CO power / COP / SCOP buttons to temporarily ignore charge calculations.
+        const ignorePowerCharge = (e) => {
+            let target = e.target;
+            if (!target) return;
+            
+            let id = target.id || "";
+            let className = typeof target.className === 'string' ? target.className : "";
+            let src = target.src || "";
+            let text = target.textContent || "";
+            let name = target.name || "";
+            
+            let str = (id + " " + className + " " + src + " " + text + " " + name).toLowerCase();
+            // Exclude B-Copter and T-Copter (or any copter-related elements) from triggering COP/SCOP ignore
+            if (str.includes("copter")) {
+                return;
+            }
+            if (str.includes("cop") || str.includes("scop") || str.includes("power") || str.includes("star")) {
+                playersPanel.ignoreChargeUntil = Date.now() + 500;
+            }
+        };
+
+        document.addEventListener("click", ignorePowerCharge, true);
+        document.addEventListener("change", ignorePowerCharge, true);
+
+        // Detect when a unit is undeleted from the removed units panel to allow charge reversal
+        document.addEventListener("click", (e) => {
+            if (e.target.closest("#planner_removed_units")) {
+                playersPanel.isUndeleting = true;
+                setTimeout(() => { playersPanel.isUndeleting = false; }, 500);
+            }
+        }, true);
 
         // Create weather toggle button
         createWeatherToggle(parser);
