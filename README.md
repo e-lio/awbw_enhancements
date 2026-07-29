@@ -49,15 +49,15 @@ To avoid reinstalling the temporary extension every time you restart Firefox, yo
 ### Quick Action Hotkeys
 This fork adds comprehensive keyboard shortcuts for common move planner actions:
 
-- **Quick Move (B)** - Quickly move a unit. Can also hold down B to drag and drop the unit to the new location.
-- **Quick Convert Army (V)** - Convert building to your army's color (this can potentially be a bit buggy)
+- **Quick Move (G)** - Quickly move a unit. Can also hold down G to drag and drop the unit to the new location.
+- **Quick Convert Army (F)** - Convert building to your army's color (this can potentially be a bit buggy)
 - **Quick Convert Neutral (N)** - Convert building to neutral (this can potentially be a bit buggy)
-- **Quick Remove Unit (G)** - Remove a unit
-- **Quick Capture (F)** - Set Infantry/Mech as capturing
-- **Quick Wait (S)** - Wait a unit
+- **Quick Remove Unit (R)** - Remove a unit
+- **Quick Capture (V)** - Set Infantry/Mech as capturing
+- **Quick Wait (W)** - Wait a unit
 - **Quick Unwait (X)** - Unwait a unit
 - **Set HP (1-0)** - Set unit HP (1-9 for 1-9 HP, 0 for 10 HP)
-- **End Turn (M)** - End your turn
+- **End Turn (P)** - End your turn
 
 #### Quick Build Hotkeys
 

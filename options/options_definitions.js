@@ -89,6 +89,16 @@ let kCheckOptionsMapping = [
             `If disabled, the legacy list view will be used instead.`
         ],
     }, {
+        id: "enable-movement-tracers",
+        name: "options_enable_movement_tracers",
+        requires: ["js-requires-moveplanner-plus"],
+        default: true,
+        label: "Enable Movement Tracers",
+        description: [
+            `Displays a thin orange line pointing from the unit's starting square to its new position ` +
+            `when it is moved during planning.`,
+        ],
+    }, {
         id: "enable-bugfix-wait-mismatch",
         name: "options_enable_bugfix_wait_mismatch",
         default: true,
@@ -224,7 +234,7 @@ let kKeyboardOptionsMapping = [
     }, {
         id: "quick-move-hotkey",
         name: "options_bindings_quick_move_hotkey",
-        default: [66 /*b*/],
+        default: [71 /*g*/],
         label: "Quick Move",
         description: [
             `Keyboard shortcut for quickly moving a unit. Hover over a unit and press this key to immediately select "Move".`,
@@ -232,7 +242,7 @@ let kKeyboardOptionsMapping = [
     }, {
         id: "quick-convert-army-hotkey",
         name: "options_bindings_quick_convert_army_hotkey",
-        default: [86 /*v*/],
+        default: [70 /*f*/],
         label: "Quick Convert Property (Army)",
         description: [
             `Keyboard shortcut to convert a building to your army's color (when an infantry is on it).`,
@@ -248,7 +258,7 @@ let kKeyboardOptionsMapping = [
     }, {
         id: "quick-remove-unit-hotkey",
         name: "options_bindings_quick_remove_unit_hotkey",
-        default: [71 /*g*/],
+        default: [82 /*r*/],
         label: "Quick Remove Unit",
         description: [
             `Keyboard shortcut to quickly remove a unit.`,
@@ -256,7 +266,7 @@ let kKeyboardOptionsMapping = [
     }, {
         id: "quick-capture-hotkey",
         name: "options_bindings_quick_capture_hotkey",
-        default: [70 /*f*/],
+        default: [86 /*v*/],
         label: "Quick Capture",
         description: [
             `Keyboard shortcut to quickly capture a property with Infantry or Mech.`,
@@ -264,7 +274,7 @@ let kKeyboardOptionsMapping = [
     }, {
         id: "quick-wait-hotkey",
         name: "options_bindings_quick_wait_hotkey",
-        default: [83 /*s*/],
+        default: [87 /*w*/],
         label: "Quick Wait",
         description: [
             `Keyboard shortcut to quickly wait a unit.`,
@@ -455,7 +465,7 @@ let kKeyboardOptionsMapping = [
     }, {
         id: "end-turn-hotkey",
         name: "options_bindings_end_turn_hotkey",
-        default: [77 /*m*/],
+        default: [80 /*p*/],
         label: "End Turn",
         description: [
             `Keyboard shortcut to click the "End Turn" button in the move planner.`,
