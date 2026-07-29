@@ -972,15 +972,18 @@ OptionsReader.instance().onOptionsReady((options) => {
             playersPanel.handleUnitBuilt(property, builtUnit);
         });
 
+        let rangePreview = null;
         if (options.options_enable_move_range_preview) {
             let mergedTerrainInfo = await getMergedTerrainInfo();
             if (mergedTerrainInfo) {
                 let cursorTracker = new CursorTracker(options);
-                let rangePreview = new MoveRangePreview(gamemap, mergedTerrainInfo, players);
+                rangePreview = new MoveRangePreview(gamemap, mergedTerrainInfo, players);
                 parser.addListener(rangePreview.onMapUpdate.bind(rangePreview));
                 cursorTracker.addCursorUpdateListener(rangePreview.onCursorUpdate.bind(rangePreview));
             }
         }
+
+        initializeMovePlannerSettings(options, movementTracker, rangePreview);
 
         if (options.options_enable_savestate_interception) {
             let loadStateInput = document.getElementById("load-state-input");
@@ -1064,6 +1067,74 @@ OptionsReader.instance().onOptionsReady((options) => {
     });
 });
 
+function initializeMovePlannerSettings(options, movementTracker, rangePreview) {
+    let gameSelect = document.getElementById("your_games");
+    let row = null;
+    if (gameSelect && gameSelect.parentNode && gameSelect.parentNode.parentNode) {
+        row = gameSelect.parentNode.parentNode;
+    } else {
+        let controlsTable = document.getElementById("game-controls-table");
+        if (controlsTable) {
+            row = controlsTable.querySelector("tr");
+        }
+    }
+    if (!row) return;
+
+    let cell = document.createElement("td");
+    cell.style.paddingLeft = "25px";
+    cell.style.verticalAlign = "middle";
+
+    let settingsDiv = document.createElement("div");
+    settingsDiv.className = "awbwenhancements-planner-settings";
+
+    // 1. Two-move range highlight checkbox
+    let twoMoveEnabled = options.options_enable_two_move_highlight !== false;
+    let twoMoveLabel = document.createElement("label");
+    let twoMoveCheckbox = document.createElement("input");
+    twoMoveCheckbox.type = "checkbox";
+    twoMoveCheckbox.id = "awbwenhancements-toggle-twomove";
+    twoMoveCheckbox.checked = twoMoveEnabled;
+    twoMoveLabel.appendChild(twoMoveCheckbox);
+    twoMoveLabel.appendChild(document.createTextNode(" Show 2-Move Range"));
+    settingsDiv.appendChild(twoMoveLabel);
+
+    if (rangePreview) {
+        rangePreview.enableTwoMoveHighlight = twoMoveEnabled;
+    }
+
+    // 2. Movement tracers checkbox
+    let tracersEnabled = options.options_enable_movement_tracers !== false;
+    let tracersLabel = document.createElement("label");
+    let tracersCheckbox = document.createElement("input");
+    tracersCheckbox.type = "checkbox";
+    tracersCheckbox.id = "awbwenhancements-toggle-tracers";
+    tracersCheckbox.checked = tracersEnabled;
+    tracersLabel.appendChild(tracersCheckbox);
+    tracersLabel.appendChild(document.createTextNode(" Show Movement Arrows"));
+    settingsDiv.appendChild(tracersLabel);
+
+    cell.appendChild(settingsDiv);
+    row.appendChild(cell);
+
+    // Set up listeners to update and persist settings dynamically
+    twoMoveCheckbox.addEventListener("change", (e) => {
+        let val = e.target.checked;
+        chrome.storage.sync.set({ "options_enable_two_move_highlight": val }, () => {
+            if (rangePreview) {
+                rangePreview.enableTwoMoveHighlight = val;
+                rangePreview.refresh();
+            }
+        });
+    });
+
+    tracersCheckbox.addEventListener("change", (e) => {
+        let val = e.target.checked;
+        chrome.storage.sync.set({ "options_enable_movement_tracers": val }, () => {
+            movementTracker.setEnabled(val);
+        });
+    });
+}
+
 function initializeHotkeyReference(options) {
     // Find a place to inject the button. The game controls table seems appropriate.
     let controlsTable = document.getElementById("game-controls-table");
@@ -1076,12 +1147,10 @@ function initializeHotkeyReference(options) {
     hotkeyBtn.title = "View Keyboard Shortcuts";
 
     // Find a place to inject the button.
-    // User wants it to the right of the "Your Games" select box.
-    let gameSelect = document.getElementById("your_games");
-    if (gameSelect && gameSelect.parentNode) {
-        let container = gameSelect.parentNode;
-        // The container (td) has a fixed width of 220px which matches the select.
-        // We need to increase it or set to auto to fit the button.
+    // User wants it to the right of the "Load" button next to Map ID.
+    let mapsIdInput = document.querySelector("input[name=maps_id]");
+    if (mapsIdInput && mapsIdInput.parentNode) {
+        let container = mapsIdInput.parentNode;
         container.style.width = "auto";
         container.appendChild(hotkeyBtn);
     } else {

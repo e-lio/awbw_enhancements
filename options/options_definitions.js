@@ -99,6 +99,15 @@ let kCheckOptionsMapping = [
             `when it is moved during planning.`,
         ],
     }, {
+        id: "enable-two-move-highlight",
+        name: "options_enable_two_move_highlight",
+        requires: ["js-requires-moveplanner-plus"],
+        default: true,
+        label: "Enable 2-Move Range Highlight",
+        description: [
+            `Displays a second movement range highlighted with lower opacity showing where units could reach in two turns.`,
+        ],
+    }, {
         id: "enable-bugfix-wait-mismatch",
         name: "options_enable_bugfix_wait_mismatch",
         default: true,
