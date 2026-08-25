@@ -1,138 +1,149 @@
-# AWBW Enhancements (Fork)
+# AWBW Enhancements (AI-Enhanced Fork)
 
-> **Note:** This is a fork of the original [AWBW Enhancements](https://github.com/kbuzsaki/awbw_enhancements) by [kbuzsaki](https://github.com/kbuzsaki). All credit for the original extension goes to the original author.
+> **⚠️ Disclaimer & Notice:** All changes and features added in this fork (`e-lio`) were **AI-driven** (developed in collaboration with Antigravity AI pair programming) and have only been **somewhat / lightly tested**. Furthermore, while I can say I have good intentions, I make no promises on good upkeep of this repo. #slop #notarealdev
+>
+> **🙏 Credits:** This repository builds upon the incredible work of previous authors:
+> - **Original Author & Creator:** [kbuzsaki](https://github.com/kbuzsaki) (*saltor* on AWBW Discord) — Created the original [AWBW Enhancements](https://github.com/kbuzsaki/awbw_enhancements) extension, Moveplanner Plus, damage calculator integration, replay hotkeys, and core AWBW hooks.
+> - **Major Fork Author:** [carsonhu](https://github.com/carsonhu) (*darthnoob* on AWBW Discord) — Authored the [carsonhu/awbw_enhancements](https://github.com/carsonhu/awbw_enhancements) fork, introducing the Tree-Based Snapshot System, Quick Action Hotkeys (note: I changed the hotkey defaults), Weather Toggle, Automatic Unit Repair, Hachi cost modifiers, and Firefox support.
 
-"AWBW Enhancements" is a browser extension that adds extra functionality to [Advance Wars By Web](https://awbw.amarriner.com).
+"AWBW Enhancements" is a browser extension that adds powerful tools, move planning aids, statistics tracking, and quality-of-life improvements to [Advance Wars By Web](https://awbw.amarriner.com).
 
-## Installation
+---
 
-The original extension can be installed for Chrome and Microsoft Edge (and other Chromium-based browsers) [here](https://chrome.google.com/webstore/detail/awbw-helper/cnkhdcnafdfffpkbbbeghbdjkabhbkfi) and for Firefox [here](https://addons.mozilla.org/en-US/firefox/addon/awbw-enhancements/).
+## 🚀 Features Added in This Fork (e-lio)
 
-To use this fork, you'll need to load it as an unpacked extension.
+### 🏹 Visual Unit Movement Tracers (Arrows & Circles)
+- **Directional SVG Tracers:** When moving units during planning, a thin orange line (`#ff9900`) and directional arrowhead point from the unit's starting square to its destination.
+- **Start Location Markers:** A small orange circle marks the original starting location of each moved unit.
+- **Clean Alpha Blending:** SVG tracers are rendered on a master container with `65%` opacity, preventing overlapping circles, lines, and arrowheads from creating ugly double-exposed dark spots.
+- **Dynamic Cleanup:** Tracers update dynamically as units move, automatically clear when units are unwated or return to their starting square, and reset on turn start.
 
-> **⚠️ Important:** If you have the original AWBW Enhancements extension installed, you must **disable or remove it first** to avoid conflicts.
+### 🔷 2-Turn Movement Range Highlight Overlay
+- **2-Turn Planning Matrix:** Shows where a unit could reach on its next turn (in two turns total) by executing a secondary BFS movement search from every square reachable on turn one.
+- **Distinct Outer Styling:** Highlights 2-turn tiles in a soft 15% opacity cyan fill (`rgba(67, 217, 228, 0.15)`) with an outer boundary border, clearly distinguishing them from the 1-turn movement range.
 
-### Chrome / Edge / Brave (Chromium)
+### ⚡ Smarter CO Power Activator & Tag-Team Auto-Selection
+- **Auto Active Player Default:** Opening Move Planner from an active game automatically defaults the AWBW Power Activator army selector to the active player whose turn it is (instead of always defaulting to Player 1).
+- **Auto Turn Transitions:** Ending turn in Move Planner automatically advances the Power Activator to the next active player.
+- **Smart CO Matching:** Scans available COP/SCOP dropdown options using case-insensitive, alphanumeric-cleaned matching (supporting single COs, Tag Teams like `Drake/Olaf`, and special COs like `Von Bolt`). Defaults to selecting SCOP if both COP and SCOP options are available.
+
+### ✏️ Manual CO Power Charge Editing Modal
+- **Click to Edit Charge:** Click anywhere on a player's COP/SCOP power bar to pop up a dark-mode charge editing dialog.
+- **Funds & Stars Input:** Enter charge directly in **Funds** (0 to 54,000 G, where 9,000 G = 1 Star) with live star conversion hints (`= X.XX Stars`).
+- **Quick Presets:** One-click preset buttons for `Clear (0 G)`, `Full COP`, and `Full SCOP`.
+- **Keyboard & Action Confirmation:** Confirm with **OK** (or `Enter` key) or discard with **Cancel** (or `Esc` key / backdrop click). Immediately updates power bar graphics and patches page script variables.
+
+### 🎛️ Top Panel Runtime Settings Toggles
+- **Inline Header Checkboxes:** Adds "Show 2-Move Range" and "Show Movement Arrows" checkboxes to the top Move Planner header panel in their own dedicated column on the far right.
+- **Instant Board Updates:** Toggling checkboxes updates board overlays dynamically at runtime and persists preferences via `chrome.storage.sync`.
+
+### 🐛 Fog of War Starting Charge Fix
+- **Baseline Load Protection:** Fixed a bug where opening Move Planner from an active Fog of War game drained both players' starting CO power meters on initial page parse.
+
+---
+
+## 🛠️ Features Introduced in Carson Hu's Fork
+
+### 🌳 Tree-Based Save/Load Snapshot System
+- **Branching Strategy Exploration:** Visualizes snapshots in an interactive tree view (custom SVG renderer), allowing you to branch play and explore multiple tactical variations.
+- **Tree File Import/Export:**
+  - **Save Tree:** Export your entire snapshot tree to a JSON file.
+  - **Load Tree:** Load a saved snapshot tree to resume analysis anytime.
+- **Node Management:** Toggle, restore, or delete individual snapshot nodes directly from the visualizer.
+
+### ⌨️ Quick Action Hotkeys & Building Hotkeys
+Comprehensive keyboard shortcuts for Move Planner actions:
+- **Quick Move (`G`)** — Move a unit (or hold `G` to drag and drop).
+- **Quick Capture (`V`)** — Set Infantry/Mech as capturing.
+- **Quick Wait (`W`)** — Wait a unit.
+- **Quick Unwait (`X`)** — Unwait a unit.
+- **Quick Remove (`R`)** — Remove a unit from the board.
+- **Convert Property Army (`F`)** — Convert building to your army's color.
+- **Convert Property Neutral (`N`)** — Convert building to neutral.
+- **Set HP (`1-0`)** — Set unit HP (1–9 for 1–9 HP, 0 for 10 HP).
+- **End Turn (`P`)** — End your turn.
+- **Toggle Calculator (`C`)** — Open/close the damage calculator.
+
+#### Building Quick Build Hotkeys (Hover over property):
+- **Bases:** Infantry (`Q`), Recon (`W`), Artillery (`E`), Tank (`R`), Anti-Air (`T`).
+- **Airports:** T-Copter (`Q`), B-Copter (`W`), Fighter (`E`), Bomber (`R`), Stealth (`T`).
+- **Ports:** Black Boat (`Q`), Lander (`W`), Cruiser (`E`), Sub (`R`), Battleship (`T`).
+- *(Custom hotkeys can also be configured for Mech, Md. Tank, Neotank, Megatank, Piperunner, APC, etc.)*
+
+### 🌦️ Weather Toggle
+- Toggle weather between **Clear**, **Rain**, and **Snow** directly in Move Planner to evaluate how weather affects movement costs and range previews.
+
+### 🏥 Automatic Property Repairs
+- Units resting on Cities, Bases, Ports, and Airports are automatically repaired at turn start, applying repair costs and updating unit HP.
+
+### 🏷️ Hachi Barter / Merchant Union Cost Modifiers
+- Dynamically reduces unit build costs in the build menu when Hachi activates Barter (COP) or Merchant Union (SCOP).
+
+---
+
+## 🛡️ Core Original Features (kbuzsaki)
+
+1. **Moveplanner Plus Sidebar:**
+   - Real-time player statistics panels showing income, unit count, unit value, and funds.
+   - Automatic income simulation for future turns and fund deduction when building units.
+2. **Move Range Previewer:** Preview movement and attack ranges for selected units.
+3. **Replay Shortcuts:** Keyboard shortcuts for navigating replay turns and actions.
+4. **Menu Opacity Controls:** Adjust opacity for the action menu and build menu.
+5. **Move Planner Bug Fixes:**
+   - Fixes moved units displaying as unwaited.
+   - Fixes "Unwait All" button skipping certain units.
+   - Fixes damage calculator selection for newly built units.
+   - Fixes visual capture icon bugs and Black Boat sprite corruption on savestate upload.
+
+---
+
+## 📦 Installation Guide
+
+> **⚠️ Note:** If you have the original AWBW Enhancements extension installed from the Chrome Web Store or Firefox Add-ons, **disable or remove it first** to prevent shortcut and content script conflicts.
+
+### Chrome / Edge / Brave / Opera (Chromium)
 
 1. **Download the code:** Clone this repository or download it as a ZIP file and extract it.
-2. **Open Extensions page:** Go to `chrome://extensions` (or `edge://extensions`).
-3. **Enable Developer Mode:** Toggle the "Developer mode" switch.
-4. **Load Unpacked:** Click "Load unpacked".
-5. **Select Folder:** Select the folder containing `manifest.json`.
+2. **Open Extensions:** Go to `chrome://extensions` (or `edge://extensions`).
+3. **Enable Developer Mode:** Toggle **Developer mode** in the top right.
+4. **Load Unpacked:** Click **Load unpacked** and select the folder containing `manifest.json`.
 
 ### Firefox
 
-1. **Download the code:** Clone this repository or download it as a ZIP file and extract it.
-2. **Prepare Manifest:**
-   - Delete or rename the existing `manifest.json` (this is the Chrome version).
-   - Rename `manifest_firefox.json` to `manifest.json`.
-3. **Open Debugging page:** Go to `about:debugging`.
-4. **Load Add-on:** Click "This Firefox", then "Load Temporary Add-on...".
-5. **Select Manifest:** Select the `manifest.json` file you just renamed.
+1. **Download the code:** Clone or download and extract this repository.
+2. **Build Manifest:**
+   - Run `make ff` (or copy `manifests/manifest_ff.json` over `manifest.json`).
+3. **Open Debugging:** Go to `about:debugging` in Firefox.
+4. **Load Temporary Add-on:** Click **This Firefox** -> **Load Temporary Add-on...** and select `manifest.json`.
 
-The extension should now be installed and active.
+---
 
-### Development (Firefox)
+## 💻 Building & Development
 
-To avoid reinstalling the temporary extension every time you restart Firefox, you can use the `run-ff` command. This uses `web-ext` to launch a dedicated Firefox instance with the extension installed.
+The repository uses simple makefiles to merge common manifests for Chrome and Firefox targets:
 
-1.  Ensure you have **Node.js** and **npm** installed.
-2.  Run:
-    ```powershell
-    ./manage.ps1 run-ff
-    ```
+```bash
+# Build for Chrome / Chromium
+make chrome
 
+# Build for Firefox
+make ff
+```
 
+---
 
-## Features Added in This Fork
+## 📷 Screenshots
 
-### Quick Action Hotkeys
-This fork adds comprehensive keyboard shortcuts for common move planner actions:
-
-- **Quick Move (G)** - Quickly move a unit. Can also hold down G to drag and drop the unit to the new location.
-- **Quick Convert Army (F)** - Convert building to your army's color (this can potentially be a bit buggy)
-- **Quick Convert Neutral (N)** - Convert building to neutral (this can potentially be a bit buggy)
-- **Quick Remove Unit (R)** - Remove a unit
-- **Quick Capture (V)** - Set Infantry/Mech as capturing
-- **Quick Wait (W)** - Wait a unit
-- **Quick Unwait (X)** - Unwait a unit
-- **Set HP (1-0)** - Set unit HP (1-9 for 1-9 HP, 0 for 10 HP)
-- **End Turn (P)** - End your turn
-
-#### Quick Build Hotkeys
-
-Hotkeys to instantly build a unit when hovering over a Base, Airport, or Port. By default, (Q/W/E/R/T) keys are assigned to different units based on the building type:
-
-**Base Units:**
-- ![Infantry](https://awbw.amarriner.com/terrain/aw2/osinfantry.gif) **Infantry (Q)** 
-- ![Recon](https://awbw.amarriner.com/terrain/aw2/osrecon.gif) **Recon (W)**
-- ![Artillery](https://awbw.amarriner.com/terrain/aw2/osartillery.gif) **Artillery (E)**
-- ![Tank](https://awbw.amarriner.com/terrain/aw2/ostank.gif) **Tank (R)**
-- ![Anti-Air](https://awbw.amarriner.com/terrain/aw2/osanti-air.gif) **Anti-Air (T)**
-
-**Airport Units:**
-- ![T-Copter](https://awbw.amarriner.com/terrain/aw2/ost-copter.gif) **T-Copter (Q)**
-- ![B-Copter](https://awbw.amarriner.com/terrain/aw2/osb-copter.gif) **B-Copter (W)**
-- ![Fighter](https://awbw.amarriner.com/terrain/aw2/osfighter.gif) **Fighter (E)**
-- ![Bomber](https://awbw.amarriner.com/terrain/aw2/osbomber.gif) **Bomber (R)**
-- ![Stealth](https://awbw.amarriner.com/terrain/aw2/osstealth.gif) **Stealth (T)**
-
-**Port Units:**
-- ![Black Boat](https://awbw.amarriner.com/terrain/aw2/osblackboat.gif) **Black Boat (Q)**
-- ![Lander](https://awbw.amarriner.com/terrain/aw2/oslander.gif) **Lander (W)**
-- ![Cruiser](https://awbw.amarriner.com/terrain/aw2/oscruiser.gif) **Cruiser (E)**
-- ![Sub](https://awbw.amarriner.com/terrain/aw2/ossub.gif) **Sub (R)**
-- ![Battleship](https://awbw.amarriner.com/terrain/aw2/osbattleship.gif) **Battleship (T)**
-
-**Additional units** (Mech, Md. Tank, Neotank, APC, etc) can have custom hotkeys assigned in the move planner.
-
-All hotkeys are fully customizable in the move planner. A "Disable All Quick Action Hotkeys" button is available in the extension options in case you only want the bug fixes and CO portrait / army color fixes.
-
-### Weather Toggle
-This fork adds a weather toggle to the move planner that allows you to toggle weather between Clear, Rain, and Snow. This does not change the visuals much, but it does affect unit movement ranges.
-
-### Tree-based Save/Load Snapshot System
-This fork introduces a robust tree-based system for managing snapshots. You can now:
-- **Save Tree**: Download the entire tree of snapshots to a file.
-- **Load Tree**: Load a previously saved tree to resume analysis.
-- **Branching**: Create multiple branches of play to explore different strategies.
-
-### Automatic Unit Repair
-Units on properties that provide repairs (Cities, Bases, Ports, Airports) are now automatically repaired at the start of the turn, simulating the actual game mechanics.
-
-### Bug Fixes
-- **Fixed CO portraits in move planner** - CO portraits were not being displayed in the move planner.
-- **Added in support for new armies** - Extension now works for newly added armies in Advance Wars by Web.
-- **Pre-deployed unit HP icons** - Fixed broken HP icon sprites appearing on pre-deployed units with full HP after savestate restore.
-- **Ghost Production Fix** - Fixed a move planner bug where funds were deducted even if a unit wasn't built.
-- **Hachi COP/SCOP Fix** - Hachi's COP and SCOP now correctly reduce unit costs.
-
-## Original Features
-
-The original extension includes:
-
-1. Configurable keyboard shortcuts for replays.
-2. Several quality of life improvements to the move planner ("Moveplanner Plus"), including:
-    1. Movement range previews for the selected unit.
-    2. Savestate "quick save" snapshots that let you snapshot and restore states without having to download a full savestate file.
-    3. Automatic tracking of unit count, unit value, income, and funds in per-player panels, like on the game screen. This includes automatically deducting funds for unit builds and simulating income for future turns.
-    4. Configurable opacity for the "action menu" and "build menu".
-    5. Configurable keyboard shortcuts for toggling the damage calculator.
-3. Fixes for certain bugs in the vanilla move planner. These include:
-    1. The bug where the most recently moved unit sometimes displays as unmoved in the move planner.
-    2. The bug where already-moved units sometimes do not unwait with the "Unwait All" button.
-    3. The bug where the damage calculator cannot select units that were built on the move planner page.
-    4. The visual bug where capture icons are displayed for infantry that have already finished capturing.
-    5. The visual bug where black boat sprites break when a savestate is uploaded.
-
-## Screenshots
-
-Here's an example of what the moveplanner looks like with AWBW Enhancements enabled:
+Here is an example of the Move Planner with AWBW Enhancements:
 ![screenshot of moveplanner plus](docs/images/demo_new2.png)
 
-## Credits
+---
 
-- **Original Author:** [kbuzsaki](https://github.com/kbuzsaki) (saltor on AWBW Discord)
-- **Fork Author:** [carsonhu](https://github.com/carsonhu) (darthnoob on AWBW Discord)
+## 📜 Credits & Acknowledgments
 
-Please feel free to report bugs or request new features via a GitHub issue.
+- **Original Extension Author:** [kbuzsaki](https://github.com/kbuzsaki) (*saltor* on AWBW Discord)
+- **Fork Author (Tree Snapshots, Hotkeys, Repairs, Firefox):** [carsonhu](https://github.com/carsonhu) (*darthnoob* on AWBW Discord)
+- **AI-Enhanced Fork Author (Tracers, 2-Turn Range, Smart Activator, Charge Modal, Fog Fixes):** [e-lio](https://github.com/e-lio) (*e-lio*)
+- Special thanks to the AWBW community and developers!
+
+Feel free to open a GitHub issue or pull request if you encounter any bugs or have feature suggestions!
