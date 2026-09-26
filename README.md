@@ -10,6 +10,27 @@
 
 ---
 
+## 📦 Installation Guide
+
+> **⚠️ Note:** If you have the original AWBW Enhancements extension installed from the Chrome Web Store or Firefox Add-ons, **disable or remove it first** to prevent shortcut and content script conflicts.
+
+### Chrome / Edge / Brave / Opera (Chromium)
+
+1. **Download the code:** Clone this repository or download it as a ZIP file and extract it.
+2. **Open Extensions:** Go to `chrome://extensions` (or `edge://extensions`).
+3. **Enable Developer Mode:** Toggle **Developer mode** in the top right.
+4. **Load Unpacked:** Click **Load unpacked** and select the folder containing `manifest.json`.
+
+### Firefox
+
+1. **Download the code:** Clone or download and extract this repository.
+2. **Build Manifest:**
+   - Run `make ff` (or copy `manifests/manifest_ff.json` over `manifest.json`).
+3. **Open Debugging:** Go to `about:debugging` in Firefox.
+4. **Load Temporary Add-on:** Click **This Firefox** -> **Load Temporary Add-on...** and select `manifest.json`.
+
+---
+
 ## 🚀 Features Added in This Fork (e-lio)
 
 ### 🏹 Visual Unit Movement Tracers (Arrows & Circles)
@@ -94,27 +115,6 @@ Comprehensive keyboard shortcuts for Move Planner actions:
    - Fixes "Unwait All" button skipping certain units.
    - Fixes damage calculator selection for newly built units.
    - Fixes visual capture icon bugs and Black Boat sprite corruption on savestate upload.
-
----
-
-## 📦 Installation Guide
-
-> **⚠️ Note:** If you have the original AWBW Enhancements extension installed from the Chrome Web Store or Firefox Add-ons, **disable or remove it first** to prevent shortcut and content script conflicts.
-
-### Chrome / Edge / Brave / Opera (Chromium)
-
-1. **Download the code:** Clone this repository or download it as a ZIP file and extract it.
-2. **Open Extensions:** Go to `chrome://extensions` (or `edge://extensions`).
-3. **Enable Developer Mode:** Toggle **Developer mode** in the top right.
-4. **Load Unpacked:** Click **Load unpacked** and select the folder containing `manifest.json`.
-
-### Firefox
-
-1. **Download the code:** Clone or download and extract this repository.
-2. **Build Manifest:**
-   - Run `make ff` (or copy `manifests/manifest_ff.json` over `manifest.json`).
-3. **Open Debugging:** Go to `about:debugging` in Firefox.
-4. **Load Temporary Add-on:** Click **This Firefox** -> **Load Temporary Add-on...** and select `manifest.json`.
 
 ---
 
