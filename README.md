@@ -24,8 +24,12 @@
 ### Firefox
 
 1. **Download the code:** Clone or download and extract this repository.
-2. **Build Manifest:**
-   - Run `make ff` (or copy `manifests/manifest_ff.json` over `manifest.json`).
+2. **Set up Firefox Manifest:**
+   - **Manual (no terminal needed):** Copy `manifest_firefox.json` (located in the root folder) over `manifest.json` (overwriting the default Chrome manifest).
+   - **Or via Terminal:**
+     - **macOS / Linux:** Run `make ff`
+     - **Windows (PowerShell):** Run `./manage.ps1 ff`
+     - **Python (cross-platform):** `python3 merge_json.py manifests/manifest_common.json manifests/manifest_ff.json --out=manifest.json`
 3. **Open Debugging:** Go to `about:debugging` in Firefox.
 4. **Load Temporary Add-on:** Click **This Firefox** -> **Load Temporary Add-on...** and select `manifest.json`.
 
@@ -124,10 +128,10 @@ The repository uses simple makefiles to merge common manifests for Chrome and Fi
 
 ```bash
 # Build for Chrome / Chromium
-make chrome
+make chrome        # or: ./manage.ps1 chrome
 
 # Build for Firefox
-make ff
+make ff            # or: ./manage.ps1 ff
 ```
 
 ---
