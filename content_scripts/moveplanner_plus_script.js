@@ -359,9 +359,97 @@ function injectRequestedStyles(options) {
 
 let hoveredEntity = null;
 let menuOwner = null;
+let globalPlayersPanel = null;
+let globalParser = null;
 let quickMoveStartTime = 0;
 
+function injectUnbuildMenuItem() {
+    if (document.getElementById("unbuild")) {
+        return;
+    }
+
+    let optionsMenu = document.getElementById("options-menu");
+    if (!optionsMenu) return;
+
+    let ul = optionsMenu.querySelector("ul");
+    if (!ul) return;
+
+    let unbuildLi = document.createElement("li");
+    unbuildLi.id = "unbuild";
+    unbuildLi.textContent = "Unbuild";
+    unbuildLi.style.cursor = "pointer";
+
+    let removeLi = ul.querySelector("li#remove") || document.getElementById("remove");
+    if (removeLi && removeLi.parentNode === ul) {
+        removeLi.insertAdjacentElement("afterend", unbuildLi);
+    } else {
+        ul.appendChild(unbuildLi);
+    }
+
+    unbuildLi.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        clickUnbuildOption();
+    });
+}
+
+function syncUnbuildVisibility() {
+    let unbuildLi = document.getElementById("unbuild");
+    if (!unbuildLi) {
+        injectUnbuildMenuItem();
+        unbuildLi = document.getElementById("unbuild");
+    }
+    if (!unbuildLi) return;
+
+    let optionsMenu = document.getElementById("options-menu");
+    if (!optionsMenu) return;
+
+    let removeLi = optionsMenu.querySelector("li#remove") || document.getElementById("remove");
+    let buildingOptions = optionsMenu.querySelector("#building-options");
+    let isBuildingMenu = buildingOptions && buildingOptions.offsetParent !== null && buildingOptions.style.display !== "none";
+
+    if (isBuildingMenu || (removeLi && (removeLi.style.display === "none" || removeLi.hidden || removeLi.offsetParent === null))) {
+        unbuildLi.style.display = "none";
+    } else {
+        unbuildLi.style.display = "";
+    }
+}
+
+function setupUnbuildMenu() {
+    injectUnbuildMenuItem();
+    let optionsMenu = document.getElementById("options-menu");
+    if (optionsMenu) {
+        let observer = new MutationObserver(() => {
+            syncUnbuildVisibility();
+        });
+        observer.observe(optionsMenu, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class'] });
+    } else {
+        let bodyObserver = new MutationObserver((mutations, obs) => {
+            let menu = document.getElementById("options-menu");
+            if (menu) {
+                injectUnbuildMenuItem();
+                let observer = new MutationObserver(() => {
+                    syncUnbuildVisibility();
+                });
+                observer.observe(menu, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class'] });
+                obs.disconnect();
+            }
+        });
+        bodyObserver.observe(document.body || document.documentElement, { childList: true, subtree: true });
+    }
+}
+
 function initializeQuickActions(options) {
+    setupUnbuildMenu();
+
+    // Track clicked unit to ensure menuOwner is set on direct clicks
+    document.addEventListener('click', (e) => {
+        let unitSpan = e.target.closest("span[id^='unit_']");
+        if (unitSpan) {
+            menuOwner = unitSpan;
+        }
+    }, true);
+
     // Track hovered entity (unit or building)
     document.addEventListener('mouseover', (e) => {
         let target = e.target;
@@ -458,6 +546,13 @@ function initializeQuickActions(options) {
         let removeUnitKeys = options.options_bindings_quick_remove_unit_hotkey || [82]; // Default 'R'
         if (removeUnitKeys.includes(e.keyCode)) {
             handleQuickAction(() => clickRemoveOption(), 0);
+            return;
+        }
+
+        // --- Quick Unbuild Unit ---
+        let unbuildUnitKeys = options.options_bindings_quick_unbuild_hotkey || [85]; // Default 'U'
+        if (unbuildUnitKeys.includes(e.keyCode)) {
+            handleQuickAction(() => clickUnbuildOption(), 0);
             return;
         }
 
@@ -818,6 +913,112 @@ function clickRemoveOption() {
     pollAndClick("li#remove");
 }
 
+function getTargetUnit() {
+    if (menuOwner && menuOwner.id && menuOwner.id.startsWith("unit_") && menuOwner.parentNode) {
+        return menuOwner;
+    }
+    if (hoveredEntity && hoveredEntity.id && hoveredEntity.id.startsWith("unit_") && hoveredEntity.parentNode) {
+        return hoveredEntity;
+    }
+    let cursor = document.getElementById("cursor");
+    if (cursor) {
+        let cursorLeft = cursor.style.left;
+        let cursorTop = cursor.style.top;
+        let units = document.querySelectorAll("span[id^='unit_']");
+        for (let unit of units) {
+            if (unit.style.left === cursorLeft && unit.style.top === cursorTop) {
+                return unit;
+            }
+        }
+    }
+    return null;
+}
+
+function executeUnbuild(targetUnit) {
+    if (!targetUnit) {
+        console.warn("AWBW Enhancements: No target unit found to unbuild");
+        return;
+    }
+
+    let parsedUnit = null;
+    try {
+        parsedUnit = Unit.fromElement(targetUnit);
+    } catch (err) {
+        console.error("AWBW Enhancements: Failed to parse unit for unbuild:", err);
+    }
+
+    if (globalPlayersPanel) {
+        globalPlayersPanel.ignoreChargeUntil = Date.now() + 500;
+        globalPlayersPanel.isUnbuilding = true;
+        setTimeout(() => {
+            if (globalPlayersPanel) {
+                globalPlayersPanel.isUnbuilding = false;
+            }
+        }, 500);
+
+        if (parsedUnit) {
+            globalPlayersPanel.handleUnitUnbuilt(parsedUnit);
+        }
+    }
+
+    let unitId = targetUnit.id;
+
+    // Trigger AWBW's remove option if present to ensure vanilla state is updated
+    let removeOption = document.querySelector("li#remove") || document.getElementById("remove");
+    if (removeOption && removeOption.offsetParent !== null) {
+        removeOption.click();
+    }
+
+    // Permanently remove targetUnit so it is never added to #planner_removed_units
+    targetUnit.remove();
+
+    setTimeout(() => {
+        targetUnit.remove();
+        let removedUnitsPanel = document.getElementById("planner_removed_units");
+        if (removedUnitsPanel) {
+            if (unitId) {
+                let matching = removedUnitsPanel.querySelector(`#${unitId}`);
+                if (matching) matching.remove();
+            }
+            if (removedUnitsPanel.contains(targetUnit)) {
+                targetUnit.remove();
+            }
+        }
+    }, 20);
+
+    closeMenus();
+
+    // Trigger map update so GameStateParser and MoveRangePreview immediately reflect the change
+    setTimeout(() => {
+        if (globalParser && globalParser.handleMapUpdate) {
+            globalParser.handleMapUpdate();
+        }
+    }, 25);
+}
+
+function clickUnbuildOption() {
+    let targetUnit = getTargetUnit();
+    if (targetUnit) {
+        executeUnbuild(targetUnit);
+        return;
+    }
+
+    let attempts = 0;
+    const maxAttempts = 50; // 50 * 10ms = 500ms max wait
+    function attempt() {
+        let unit = getTargetUnit();
+        if (unit) {
+            executeUnbuild(unit);
+            return;
+        }
+        attempts++;
+        if (attempts < maxAttempts) {
+            setTimeout(attempt, 10);
+        }
+    }
+    attempt();
+}
+
 function clickCaptureOption() {
     pollAndClick("#capture");
 }
@@ -921,6 +1122,8 @@ OptionsReader.instance().onOptionsReady((options) => {
 
         let profileSettingsReader = await ProfileSettingsReader.instance();
         let playersPanel = new PlayersPanel(replayContainer, baseUrl, profileSettingsReader, players);
+        globalPlayersPanel = playersPanel;
+        globalParser = parser;
         parser.addListener((mapEntities) => {
             playersPanel.handleUpdate(mapEntities);
         });
@@ -1186,6 +1389,7 @@ function initializeHotkeyReference(options) {
                 { label: "Quick Wait", option: "options_bindings_quick_wait_hotkey", default: "W" },
                 { label: "Quick Unwait", option: "options_bindings_quick_unwait_hotkey", default: "X" },
                 { label: "Quick Remove", option: "options_bindings_quick_remove_unit_hotkey", default: "R" },
+                { label: "Quick Unbuild", option: "options_bindings_quick_unbuild_hotkey", default: "U" },
                 { label: "Convert Property (Army)", option: "options_bindings_quick_convert_army_hotkey", default: "F" },
                 { label: "Convert Property (Neutral)", option: "options_bindings_quick_convert_neutral_hotkey", default: "N" },
                 { label: "End Turn", option: "options_bindings_end_turn_hotkey", default: "P" },

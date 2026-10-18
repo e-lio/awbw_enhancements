@@ -273,6 +273,14 @@ let kKeyboardOptionsMapping = [
             `Keyboard shortcut to quickly remove a unit.`,
         ],
     }, {
+        id: "quick-unbuild-hotkey",
+        name: "options_bindings_quick_unbuild_hotkey",
+        default: [85 /*u*/],
+        label: "Quick Unbuild Unit",
+        description: [
+            `Keyboard shortcut to quickly unbuild a unit (refunds full unit cost and does not grant charge).`,
+        ],
+    }, {
         id: "quick-capture-hotkey",
         name: "options_bindings_quick_capture_hotkey",
         default: [86 /*v*/],

@@ -442,6 +442,7 @@ chrome.storage.sync.get(kOptionDefaults, (result) => {
             "options_bindings_quick_convert_army_hotkey",
             "options_bindings_quick_convert_neutral_hotkey",
             "options_bindings_quick_remove_unit_hotkey",
+            "options_bindings_quick_unbuild_hotkey",
             "options_bindings_quick_capture_hotkey",
             "options_bindings_quick_wait_hotkey",
             "options_bindings_quick_unwait_hotkey",

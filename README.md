@@ -83,6 +83,7 @@ Comprehensive keyboard shortcuts for Move Planner actions:
 - **Quick Wait (`W`)** — Wait a unit.
 - **Quick Unwait (`X`)** — Unwait a unit.
 - **Quick Remove (`R`)** — Remove a unit from the board.
+- **Quick Unbuild (`U`)** — Unbuild a unit (refunds full unit cost including CO modifiers and leaves charge unchanged).
 - **Convert Property Army (`F`)** — Convert building to your army's color.
 - **Convert Property Neutral (`N`)** — Convert building to neutral.
 - **Set HP (`1-0`)** — Set unit HP (1–9 for 1–9 HP, 0 for 10 HP).
