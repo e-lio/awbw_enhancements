@@ -364,54 +364,34 @@ let globalParser = null;
 let quickMoveStartTime = 0;
 
 function injectUnbuildMenuItem() {
-    if (document.getElementById("unbuild")) {
-        return;
-    }
-
     let optionsMenu = document.getElementById("options-menu");
     if (!optionsMenu) return;
 
     let ul = optionsMenu.querySelector("ul");
     if (!ul) return;
 
-    let unbuildLi = document.createElement("li");
-    unbuildLi.id = "unbuild";
-    unbuildLi.textContent = "Unbuild";
-    unbuildLi.style.cursor = "pointer";
-
-    let removeLi = ul.querySelector("li#remove") || document.getElementById("remove");
-    if (removeLi && removeLi.parentNode === ul) {
-        removeLi.insertAdjacentElement("afterend", unbuildLi);
-    } else {
-        ul.appendChild(unbuildLi);
-    }
-
-    unbuildLi.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        clickUnbuildOption();
-    });
-}
-
-function syncUnbuildVisibility() {
     let unbuildLi = document.getElementById("unbuild");
     if (!unbuildLi) {
-        injectUnbuildMenuItem();
-        unbuildLi = document.getElementById("unbuild");
+        unbuildLi = document.createElement("li");
+        unbuildLi.id = "unbuild";
+        unbuildLi.textContent = "Unbuild";
+        unbuildLi.style.cursor = "pointer";
+
+        unbuildLi.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            clickUnbuildOption();
+        });
     }
-    if (!unbuildLi) return;
 
-    let optionsMenu = document.getElementById("options-menu");
-    if (!optionsMenu) return;
-
-    let removeLi = optionsMenu.querySelector("li#remove") || document.getElementById("remove");
-    let buildingOptions = optionsMenu.querySelector("#building-options");
-    let isBuildingMenu = buildingOptions && buildingOptions.offsetParent !== null && buildingOptions.style.display !== "none";
-
-    if (isBuildingMenu || (removeLi && (removeLi.style.display === "none" || removeLi.hidden || removeLi.offsetParent === null))) {
-        unbuildLi.style.display = "none";
-    } else {
-        unbuildLi.style.display = "";
+    // Always ensure it is placed directly below Remove
+    let removeLi = ul.querySelector("li#remove") || document.getElementById("remove");
+    if (removeLi && removeLi.parentNode === ul) {
+        if (unbuildLi.previousElementSibling !== removeLi) {
+            removeLi.insertAdjacentElement("afterend", unbuildLi);
+        }
+    } else if (unbuildLi.parentNode !== ul) {
+        ul.appendChild(unbuildLi);
     }
 }
 
@@ -420,18 +400,18 @@ function setupUnbuildMenu() {
     let optionsMenu = document.getElementById("options-menu");
     if (optionsMenu) {
         let observer = new MutationObserver(() => {
-            syncUnbuildVisibility();
+            injectUnbuildMenuItem();
         });
-        observer.observe(optionsMenu, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class'] });
+        observer.observe(optionsMenu, { subtree: true, childList: true });
     } else {
         let bodyObserver = new MutationObserver((mutations, obs) => {
             let menu = document.getElementById("options-menu");
             if (menu) {
                 injectUnbuildMenuItem();
                 let observer = new MutationObserver(() => {
-                    syncUnbuildVisibility();
+                    injectUnbuildMenuItem();
                 });
-                observer.observe(menu, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class'] });
+                observer.observe(menu, { subtree: true, childList: true });
                 obs.disconnect();
             }
         });
@@ -963,28 +943,55 @@ function executeUnbuild(targetUnit) {
 
     let unitId = targetUnit.id;
 
-    // Trigger AWBW's remove option if present to ensure vanilla state is updated
+    // Trigger AWBW's native remove option so AWBW updates internal state (currentUnit, unitsInfo, closeMenu)
     let removeOption = document.querySelector("li#remove") || document.getElementById("remove");
-    if (removeOption && removeOption.offsetParent !== null) {
+    if (removeOption) {
         removeOption.click();
     }
 
-    // Permanently remove targetUnit so it is never added to #planner_removed_units
-    targetUnit.remove();
-
-    setTimeout(() => {
+    // Clean up from the removed units tray (#last-actions / #planner_removed_units).
+    // AWBW wraps the removed unit inside an <li> with coordinates text in #last-actions.
+    // We must remove the entire wrapper <li> so no invisible clickable element or coordinates remain.
+    function cleanRemovedTray() {
+        let parentLi = targetUnit.closest("li");
+        if (parentLi && parentLi.closest("#planner_removed_units, #last-actions")) {
+            parentLi.remove();
+        }
         targetUnit.remove();
+
+        let lastActionsList = document.getElementById("last-actions");
         let removedUnitsPanel = document.getElementById("planner_removed_units");
+
+        if (lastActionsList) {
+            let lis = lastActionsList.querySelectorAll("li");
+            for (let li of lis) {
+                if (li.contains(targetUnit) || !li.querySelector("img")) {
+                    li.remove();
+                }
+            }
+        }
+
         if (removedUnitsPanel) {
             if (unitId) {
                 let matching = removedUnitsPanel.querySelector(`#${unitId}`);
-                if (matching) matching.remove();
+                if (matching) {
+                    let matchingLi = matching.closest("li");
+                    if (matchingLi && matchingLi.closest("#planner_removed_units, #last-actions")) {
+                        matchingLi.remove();
+                    } else {
+                        matching.remove();
+                    }
+                }
             }
             if (removedUnitsPanel.contains(targetUnit)) {
                 targetUnit.remove();
             }
         }
-    }, 20);
+    }
+
+    cleanRemovedTray();
+    setTimeout(cleanRemovedTray, 10);
+    setTimeout(cleanRemovedTray, 50);
 
     closeMenus();
 
