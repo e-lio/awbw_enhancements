@@ -15,7 +15,8 @@
     "content_scripts": [
         {
             "matches": [
-                "https://awbw.amarriner.com/game.php*"
+                "https://awbw.amarriner.com/game.php*",
+                "https://awbw.amarriner.com/*/game.php*"
             ],
             "js": [
                 "options/options_definitions.js",
@@ -26,7 +27,8 @@
         },
         {
             "matches": [
-                "https://awbw.amarriner.com/damage.php"
+                "https://awbw.amarriner.com/damage.php*",
+                "https://awbw.amarriner.com/*/damage.php*"
             ],
             "css": [
                 "res/awbw_enhancements.css"
@@ -39,7 +41,8 @@
         },
         {
             "matches": [
-                "https://awbw.amarriner.com/moveplanner.php*"
+                "https://awbw.amarriner.com/moveplanner.php*",
+                "https://awbw.amarriner.com/*/moveplanner.php*"
             ],
             "css": [
                 "res/awbw_enhancements.css"
